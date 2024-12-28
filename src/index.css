@@ -5,3 +5,7 @@
 input {
   border: 1px solid black;
 }
+
+td input {
+  width: 100%;
+}
