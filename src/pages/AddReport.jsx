@@ -2,6 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import Modal from "react-modal";
 import debounce from "lodash.debounce";
+import LocationMap from '../components/LocationMap';
+import axios from 'axios';
+import ImageUploader from '../components/ImageUploader';
 
 const OfficerRow = ({ officer, index, onDelete }) => (
     <div className="flex justify-between items-center mb-2">
@@ -60,6 +63,7 @@ const AddReport = () => {
     const [modalIsOpen, setIsOpen] = useState(false);
     const [officerName, setOfficerName] = useState("");
     const [officerDesignation, setOfficerDesignation] = useState("");
+
     const [formData, setFormData] = useState({
         type: "poly",
         officers: [],
@@ -190,14 +194,55 @@ const AddReport = () => {
 
         major_observations: "",
         recommendations: "",
+        location: {
+            coordinates: ["", ""],
+            address: ""
+        }
     });
+
+    const getMaxByField = (array, field) => {
+        if (array.length === 0) return null;
+        return array.reduce((max, obj) => (obj[field] > max[field] ? obj : max));
+    };
+
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    let address = {};
+                    // try {
+                    //     address = (await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${import.meta.env.VITE_OPENCAGE_API_KEY}`)).data
+                    // } catch (error) {
+                    //     console.error(error)
+                    // }
+                    setFormData(prev => ({
+                        ...prev,
+                        location: {
+                            coordinates: [latitude, longitude],
+                            address: Object.keys(address).length === 0 ? "" : getMaxByField(address.results, "confidence")?.formatted
+                        }
+                    }))
+                },
+                (err) => {
+                    toast.error("Failed to retrieve location. Please allow location access.");
+                    console.error(err);
+                }
+            );
+        } else {
+            toast.error("Geolocation is not supported by this browser.");
+        }
+    };
 
     const [page, setPage] = useState(1);
 
     useEffect(() => {
         const savedData = localStorage.getItem("formData");
         if (savedData) setFormData(JSON.parse(savedData));
+        getLocation();
     }, []);
+
+
 
     const debouncedSave = useCallback(debounce((data) => {
         localStorage.setItem("formData", JSON.stringify(data));
@@ -214,6 +259,7 @@ const AddReport = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        return;
         try {
             const response = await fetch('http://localhost:5000/api/v1/reports', {
                 method: 'POST',
@@ -661,12 +707,14 @@ const AddReport = () => {
                     <>
                         <Input formData={formData} handleChange={handleChange} label="Major Observations / Findings" name="major_observations" type='textarea' />
                         <Input formData={formData} handleChange={handleChange} label="Recommendations for improvement or action" name="recommendations" type='textarea' />
-
-
-
-
-
-
+                        <div>
+                            <span>Location: </span>
+                            <span> {formData.location.address} </span>
+                            <button className='border' onClick={getLocation}>Update</button>
+                        </div>
+                        {/* <iframe src="https://www.openstreetmap.org/?mlat=25.27423&mlon=82.98374#map=17/25.27423/82.98374" frameborder="0"></iframe> */}
+                        <LocationMap position={formData.location.coordinates} />
+                        <ImageUploader />
 
                         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
                     </>
