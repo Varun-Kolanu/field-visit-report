@@ -11,21 +11,18 @@ const Layout = memo(() => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
-        // Close the sidebar when the path changes
         setIsSidebarOpen(false);
     }, [pathname]);
 
     return (
         <main className="relative min-h-screen">
-            {/* Hamburger Menu */}
             <button
                 className="fixed top-4 left-4 z-30 p-2 bg-gray-800 text-white rounded-md focus:outline-none"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
-                {isSidebarOpen ? "✕" : "☰"} {/* X and Hamburger Icons */}
+                {isSidebarOpen ? "✕" : "☰"}
             </button>
 
-            {/* Sidebar */}
             <aside
                 className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 transform transition-transform duration-300 z-20 ${isSidebarOpen ? "translate-x-0" : "-translate-x-64"
                     }`}
@@ -49,14 +46,14 @@ const Layout = memo(() => {
                             My Reports
                         </button>
                     )}
-                    {pathname !== "/" && (
-                        <button
-                            className="w-full p-2 bg-gray-500 rounded-md text-left hover:bg-gray-600"
-                            onClick={() => (window.location.href = "/")}
-                        >
-                            Add Report
-                        </button>
-                    )}
+
+                    <button
+                        className="w-full p-2 bg-gray-500 rounded-md text-left hover:bg-gray-600"
+                        onClick={() => (window.location.href = "/")}
+                    >
+                        Add Report
+                    </button>
+
                     {
                         user?.role === "admin" &&
                         <button
@@ -69,7 +66,6 @@ const Layout = memo(() => {
                 </nav>
             </aside>
 
-            {/* Main Content */}
             <div
                 className={`transition-transform duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"
                     }`}

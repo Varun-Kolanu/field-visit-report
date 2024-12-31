@@ -14,14 +14,18 @@ const Login = () => {
             navigate("/")
         }
     }, [location, navigate])
+
     return (
         <>
             {
                 <div className='flex flex-col justify-around items-center h-[100vh] bg-gray-700'>
-                    <div className='w-96 h-64 bg-gray-200 rounded-lg flex flex-col justify-evenly items-center'>
+                    <div className='w-96 bg-[#f4f1f4] py-2 rounded-2xl flex flex-col justify-evenly items-center'>
                         <h1 className='text-center font-bold text-3xl text-gray-700'>Login</h1>
-                        <p className='p-5 text-lg'>
-                            Department of Science, Technology and Technocal education
+                        <div className='p-5 flex justify-center'>
+                            <img src="/bihar-govt.webp" alt="Bihar Government" className="w-32 h-32 object-contain" />
+                        </div>
+                        <p className='py-3 text-lg text-center'>
+                            Department of Science, Technology and Technical Education
                         </p>
 
                         <div className='flex w-40'>

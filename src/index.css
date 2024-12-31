@@ -7,5 +7,35 @@ input {
 }
 
 td input {
-  width: 100%;
+  width: 62px !important;
+}
+
+td {
+  font-size: 12px;
+}
+
+th {
+  font-size: 14px;
+}
+
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #333;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  z-index: 1000;
+}
+.install-banner button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+.install-banner button:hover {
+  background-color: #45a049;
 }

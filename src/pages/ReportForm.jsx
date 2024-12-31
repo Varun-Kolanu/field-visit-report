@@ -8,59 +8,143 @@ import axios from '../utils/axiosInstance';
 import Loader from '../components/Loader';
 
 const OfficerRow = ({ officer, index, onDelete, edit }) => (
-    <div className="flex justify-between items-center mb-2">
-        <span>{officer.name}</span>
-        <span>{officer.designation}</span>
-        {
-            edit && <button onClick={(e) => { e.preventDefault(); onDelete(index); }} className="text-red-500">Delete</button>
-        }
+    <div className="flex justify-between items-center mb-4 bg-gray-100 rounded-lg p-3 shadow-md">
+        <span className="text-lg font-semibold">{officer.name}</span>
+        <span className="text-gray-600">{officer.designation}</span>
+        {edit && (
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    onDelete(index);
+                }}
+                className="text-red-600 font-medium hover:underline"
+            >
+                Delete
+            </button>
+        )}
     </div>
 );
 
 const InputRow = ({ label, names, handleChange, formData, edit }) => (
-    <tr>
-        <td>{label}</td>
-        {
-            names.map((name) => (
-                <td key={name}><input disabled={!edit} type="number" name={name} value={formData[name]} onChange={handleChange} /></td>
-            ))
-        }
+    <tr className="bg-gray-50 border-b">
+        <td className="p-3 font-medium">{label}</td>
+        {names.map((name) => (
+            <td key={name} className="p-3">
+                <input
+                    disabled={!edit}
+                    type="number"
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    className={`w-full rounded-lg p-2 border ${edit ? "border-gray-300" : "border-transparent bg-gray-100"
+                        }`}
+                />
+            </td>
+        ))}
     </tr>
 );
 
 const Input = ({ label, handleChange, formData, name, type = "number", edit }) => (
-    <div>
-        <label htmlFor={name}>{label}</label>
-        {
-            type !== "textarea" ? <input disabled={!edit} type={type} name={name} id={name} value={formData[name]} onChange={handleChange} /> :
-                <textarea disabled={!edit} name={name} id={name} value={formData[name]} onChange={handleChange} />
-        }
+    <div className="mb-4">
+        <label htmlFor={name} className="block text-gray-700 font-medium mb-2">
+            {label}
+        </label>
+        {type !== "textarea" ? (
+            <input
+                disabled={!edit}
+                type={type}
+                name={name}
+                id={name}
+                value={formData[name]}
+                onChange={handleChange}
+                className={`w-full rounded-lg p-2 border ${edit ? "border-gray-300" : "border-transparent bg-gray-100"
+                    }`}
+            />
+        ) : (
+            <textarea
+                disabled={!edit}
+                name={name}
+                id={name}
+                value={formData[name]}
+                onChange={handleChange}
+                className={`w-full rounded-lg p-2 border h-24 ${edit ? "border-gray-300" : "border-transparent bg-gray-100"
+                    }`}
+            />
+        )}
     </div>
-)
+);
 
 const YesOrNo = ({ label, handleChange, formData, name, edit }) => {
     return (
-        <div>
-            <label htmlFor={name}>{label}? </label>
-            <input type="radio" name={name} id={`${name}_yes`} value="Yes" checked={formData[name] === "Yes"} onChange={handleChange} disabled={!edit} />
-            <label htmlFor={`${name}_yes`}>Yes</label>
-            <input type="radio" name={name} id={`${name}_no`} value="No" checked={formData[name] === "No"} onChange={handleChange} disabled={!edit} />
-            <label htmlFor={`${name}_no`}>No</label>
+        <div className="mb-4">
+            <label className="block text-gray-700 font-medium mb-2">{label}?</label>
+            <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                    <input
+                        type="radio"
+                        name={name}
+                        id={`${name}_yes`}
+                        value="Yes"
+                        checked={formData[name] === "Yes"}
+                        onChange={handleChange}
+                        disabled={!edit}
+                        className="w-5 h-5"
+                    />
+                    Yes
+                </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="radio"
+                        name={name}
+                        id={`${name}_no`}
+                        value="No"
+                        checked={formData[name] === "No"}
+                        onChange={handleChange}
+                        disabled={!edit}
+                        className="w-5 h-5"
+                    />
+                    No
+                </label>
+            </div>
         </div>
-    )
-}
+    );
+};
 
 const BinaryInput = ({ label, handleChange, formData, name, val1, val2, edit }) => {
     return (
-        <div>
-            <label htmlFor={name}>{label} </label>
-            <input type="radio" name={name} id={`${name}_${val1}`} value={val1} checked={formData[name] === val1} onChange={handleChange} disabled={!edit} />
-            <label htmlFor={`${name}_${val1}`}>{val1}</label>
-            <input type="radio" name={name} id={`${name}_${val2}`} value={val2} checked={formData[name] === val2} onChange={handleChange} disabled={!edit} />
-            <label htmlFor={`${name}_${val2}`}>{val2}</label>
+        <div className="mb-4">
+            <label className="block text-gray-700 font-medium mb-2">{label}</label>
+            <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                    <input
+                        type="radio"
+                        name={name}
+                        id={`${name}_${val1}`}
+                        value={val1}
+                        checked={formData[name] === val1}
+                        onChange={handleChange}
+                        disabled={!edit}
+                        className="w-5 h-5"
+                    />
+                    {val1}
+                </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="radio"
+                        name={name}
+                        id={`${name}_${val2}`}
+                        value={val2}
+                        checked={formData[name] === val2}
+                        onChange={handleChange}
+                        disabled={!edit}
+                        className="w-5 h-5"
+                    />
+                    {val2}
+                </label>
+            </div>
         </div>
-    )
-}
+    );
+};
 
 const ReportForm = () => {
     const [modalIsOpen, setIsOpen] = useState(false);
@@ -209,26 +293,6 @@ const ReportForm = () => {
     }
     const [formData, setFormData] = useState(emptyForm);
 
-    useEffect(() => {
-        const handleKeyDown = (event) => {
-            switch (event.key) {
-                case 'ArrowLeft':
-                    if (page > 1) setPage(prev => prev - 1);
-                    break;
-                case 'ArrowRight':
-                    if (page < 11) setPage(prev => prev + 1);
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
-
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
 
@@ -308,6 +372,24 @@ const ReportForm = () => {
         }
     }, [page])
 
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === 'ArrowLeft') {
+                if (page > 1) setPage(prev => prev - 1);
+                event.preventDefault();  // Prevent default behavior (like scrolling)
+            } else if (event.key === 'ArrowRight') {
+                if (page < 11) setPage(prev => prev + 1);
+                event.preventDefault();  // Prevent default behavior (like scrolling)
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [page]);
+
 
 
     const debouncedSave = useCallback(debounce((data) => {
@@ -351,6 +433,8 @@ const ReportForm = () => {
             }
             setLoading(false)
             toast.success("Report submitted successfully");
+            setFormData(emptyForm);
+            localStorage.setItem("formData", JSON.stringify(emptyForm))
             window.location.href = "/my_reports";
         } else {
             try {
@@ -397,70 +481,140 @@ const ReportForm = () => {
 
     return (
         <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg text-black">
-            <h1 className="text-2xl font-bold mb-4">Field Visit Report</h1>
+            <h1 className="text-2xl font-bold mb-4"> {(id === null || id === undefined) && 'Add'} Field Visit Report</h1>
             {
                 id !== undefined && id !== null &&
-                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-2 py-1`} onClick={() => {
+                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-4 py-2 mb-4 md:mb-0`} onClick={() => {
                     setEdit(prev => !prev);
-                }}> {
+                }}>
+                    {
                         edit ? "Cancel" : "Edit Form"
-                    } </button>
+                    }
+                </button>
             }
-            <div className="mb-4">
-                <span>College Type:</span>
-                <select name="type" onChange={handleChange} value={formData.type} disabled={!edit}>
+
+            <div className="flex items-center justify-center space-x-2 md:space-x-4">
+                <button
+                    className={`px-2 py-1 cursor-pointer rounded-md ${page <= 1 ? 'bg-red-400' : 'bg-red-500'} disabled:bg-gray-300`}
+                    disabled={page <= 1}
+                    onClick={() => setPage(prev => prev - 1)}
+                >
+                    Prev
+                </button>
+
+                <div className="flex flex-wrap space-x-1">
+                    {
+                        Array.from({ length: 11 }).map((_, index) => (
+                            <span
+                                key={index}
+                                className={`cursor-pointer border px-3 py-1 rounded-md ${page === index + 1 ? 'bg-gray-400 text-white' : 'hover:bg-gray-200'}`}
+                                onClick={() => setPage(index + 1)}
+                            >
+                                {index + 1}
+                            </span>
+                        ))
+                    }
+                </div>
+
+                <button
+                    className={`px-2 py-1 cursor-pointer rounded-md ${page >= 11 ? 'bg-green-300' : 'bg-green-500'} disabled:bg-gray-300`}
+                    disabled={page >= 11}
+                    onClick={(e) => { e.preventDefault(); setPage(prev => prev + 1) }}
+                >
+                    Next
+                </button>
+            </div>
+
+            <div className="my-4">
+                <span className="block font-medium">College Type:</span>
+                <select
+                    name="type"
+                    onChange={handleChange}
+                    value={formData.type}
+                    disabled={!edit}
+                    className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 disabled:bg-gray-100"
+                >
                     <option value="poly">Polytechnic</option>
                     <option value="engg">Engineering</option>
                 </select>
             </div>
-            <div>
-                <button className={`px-2 py-1 cursor-pointer rounded-md ${page <= 1 ? 'bg-red-400' : 'bg-red-500'}`} disabled={page <= 1} onClick={() => setPage(prev => prev - 1)}>Prev</button>
-                {
-                    Array.from({ length: 11 }).map((_, index) => (
-                        <span
-                            key={index}
-                            className={`cursor-pointer border p-1 ${page === index + 1 ? 'bg-gray-400' : ''}`}
-                            onClick={() => setPage(index + 1)}
-                        >
-                            {index + 1}
-                        </span>
-                    ))
-                }
 
-                <button className={`px-2 py-1 cursor-pointer rounded-md ${page >= 11 ? 'bg-green-300' : 'bg-green-500'}`} disabled={page >= 11} onClick={(e) => { e.preventDefault(); setPage(prev => prev + 1) }}>Next</button>
-            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
                 {
                     page === 1 &&
                     <>
-                        <div>
-                            <h2 className="font-bold mb-2">Officers</h2>
-                            {
-                                edit && <button onClick={(e) => { e.preventDefault(); setIsOpen(true); }} className="mb-4">Add Officer</button>
-                            }
-                            <div>
+                        <div className="p-4 bg-white rounded-md shadow-md">
+                            <h2 className="font-bold text-xl mb-4">Officers</h2>
+
+                            {edit && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setIsOpen(true);
+                                    }}
+                                    className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
+                                >
+                                    Add Officer
+                                </button>
+                            )}
+
+                            <div className="space-y-4">
                                 {formData.officers.map((officer, index) => (
-                                    <OfficerRow key={index} officer={officer} index={index} onDelete={deleteOfficer} edit={edit} />
+                                    <OfficerRow
+                                        key={index}
+                                        officer={officer}
+                                        index={index}
+                                        onDelete={deleteOfficer}
+                                        edit={edit}
+                                    />
                                 ))}
                             </div>
                         </div>
+
                         <Modal isOpen={modalIsOpen} onRequestClose={() => setIsOpen(false)}>
-                            <div className="px-3">
-                                <h2>Add Officer</h2>
+                            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-6">
+                                <h2 className="text-2xl font-bold text-center">Add Officer</h2>
+
                                 <div className="flex flex-col gap-4">
                                     <div>
-                                        <label htmlFor="officer_name">Name</label>
-                                        <input type="text" id="officer_name" className="border" value={officerName} onChange={(e) => setOfficerName(e.target.value)} />
+                                        <label htmlFor="officer_name" className="block text-sm font-medium text-gray-700">Name</label>
+                                        <input
+                                            type="text"
+                                            id="officer_name"
+                                            className="border border-gray-300 rounded-md px-3 py-2 mt-1 w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                            value={officerName}
+                                            onChange={(e) => setOfficerName(e.target.value)}
+                                        />
                                     </div>
                                     <div>
-                                        <label htmlFor="officer_designation">Designation</label>
-                                        <input type="text" id="officer_designation" className="border" value={officerDesignation} onChange={(e) => setOfficerDesignation(e.target.value)} />
+                                        <label htmlFor="officer_designation" className="block text-sm font-medium text-gray-700">Designation</label>
+                                        <input
+                                            type="text"
+                                            id="officer_designation"
+                                            className="border border-gray-300 rounded-md px-3 py-2 mt-1 w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                            value={officerDesignation}
+                                            onChange={(e) => setOfficerDesignation(e.target.value)}
+                                        />
                                     </div>
                                 </div>
-                                <button onClick={(e) => { e.preventDefault(); addOfficer() }}>Add</button>
-                                <button onClick={(e) => { e.preventDefault(); setIsOpen(false) }}>Close</button>
+
+                                <div className="flex justify-between gap-4">
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); addOfficer(); }}
+                                        className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-300"
+                                    >
+                                        Add
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); setIsOpen(false); }}
+                                        className="w-full bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 transition duration-300"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </Modal>
+
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Institute Name" name="institute_name" type='text' />
                         <div className="flex flex-col mb-4">
                             <label htmlFor="start_date">Start Date</label>
@@ -478,44 +632,85 @@ const ReportForm = () => {
                     page === 2 &&
                     <>
                         <h2 className="font-bold mt-6">1. Intake Capacity and Presence of Students</h2>
-                        <table className="w-full">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Admission</th>
-                                    <th>Present</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <InputRow edit={edit} formData={formData} label="1st Year" names={["year1_admission", "year1_present"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="2nd Year" names={["year2_admission", "year2_present"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="3rd Year" names={["year3_admission", "year3_present"]} handleChange={handleChange} />
-                                {formData.type === "engg" && (
-                                    <>
-                                        <InputRow edit={edit} formData={formData} label="4th Year" names={["year4_admission", "year4_present"]} handleChange={handleChange} />
-                                        <InputRow edit={edit} formData={formData} label="MTech 1st Yr" names={["mtech_1_admission", "mtech_1_present"]} handleChange={handleChange} />
-                                        <InputRow edit={edit} formData={formData} label="MTech 2nd Yr" names={["mtech_2_admission", "mtech_2_present"]} handleChange={handleChange} />
-                                    </>
-                                )}
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="border border-gray-300 p-2 text-left">Year</th>
+                                        <th className="border border-gray-300 p-2 text-left">Admission</th>
+                                        <th className="border border-gray-300 p-2 text-left">Present</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <InputRow
+                                        edit={edit}
+                                        formData={formData}
+                                        label="1st Year"
+                                        names={["year1_admission", "year1_present"]}
+                                        handleChange={handleChange}
+                                    />
+                                    <InputRow
+                                        edit={edit}
+                                        formData={formData}
+                                        label="2nd Year"
+                                        names={["year2_admission", "year2_present"]}
+                                        handleChange={handleChange}
+                                    />
+                                    <InputRow
+                                        edit={edit}
+                                        formData={formData}
+                                        label="3rd Year"
+                                        names={["year3_admission", "year3_present"]}
+                                        handleChange={handleChange}
+                                    />
+                                    {formData.type === "engg" && (
+                                        <>
+                                            <InputRow
+                                                edit={edit}
+                                                formData={formData}
+                                                label="4th Year"
+                                                names={["year4_admission", "year4_present"]}
+                                                handleChange={handleChange}
+                                            />
+                                            <InputRow
+                                                edit={edit}
+                                                formData={formData}
+                                                label="MTech 1st Yr"
+                                                names={["mtech_1_admission", "mtech_1_present"]}
+                                                handleChange={handleChange}
+                                            />
+                                            <InputRow
+                                                edit={edit}
+                                                formData={formData}
+                                                label="MTech 2nd Yr"
+                                                names={["mtech_2_admission", "mtech_2_present"]}
+                                                handleChange={handleChange}
+                                            />
+                                        </>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
 
                         <h2 className="font-bold mt-6">2. Count and presence of the qualified faculty</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Posted</th>
-                                    <th>Present</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <InputRow edit={edit} formData={formData} label="Full Time" names={["faculty_fulltime_posted", "faculty_fulltime_present"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Contractual" names={["faculty_contractual_posted", "faculty_contractual_present"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Guest" names={["faculty_guest_posted", "faculty_guest_present"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Total" names={["faculty_total_posted", "faculty_total_present"]} handleChange={handleChange} />
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="border border-gray-300 p-2 text-left"></th>
+                                        <th className="border border-gray-300 p-2 text-left">Posted</th>
+                                        <th className="border border-gray-300 p-2 text-left">Present</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <InputRow edit={edit} formData={formData} label="Full Time" names={["faculty_fulltime_posted", "faculty_fulltime_present"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Contractual" names={["faculty_contractual_posted", "faculty_contractual_present"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Guest" names={["faculty_guest_posted", "faculty_guest_present"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Total" names={["faculty_total_posted", "faculty_total_present"]} handleChange={handleChange} />
+                                </tbody>
+                            </table>
+                        </div>
                     </>
                 }
 
@@ -525,37 +720,41 @@ const ReportForm = () => {
                     page === 3 &&
                     <>
                         <h2 className="font-bold mt-6">3. Hostels and number of students</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>No. of hostels</th>
-                                    <th>Total Capacity</th>
-                                    <th>No. of students available</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <InputRow edit={edit} formData={formData} label="Boys" names={["boys_hostels", "boys_hostels_capacity", "num_boys_avail"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Girls" names={["girls_hostels", "girls_hostels_capacity", "num_girls_avail"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Boys" names={["total_hostels", "total_hostels_capacity", "num_students_avail"]} handleChange={handleChange} />
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th></th>
+                                        <th>No. of hostels</th>
+                                        <th>Total Capacity</th>
+                                        <th>No. of students available</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <InputRow edit={edit} formData={formData} label="Boys" names={["boys_hostels", "boys_hostels_capacity", "num_boys_avail"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Girls" names={["girls_hostels", "girls_hostels_capacity", "num_girls_avail"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Total" names={["total_hostels", "total_hostels_capacity", "num_students_avail"]} handleChange={handleChange} />
+                                </tbody>
+                            </table>
+                        </div>
 
                         <h2 className="font-bold mt-6">4. Residence of faculty and other staffs</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Faculty</th>
-                                    <th>Other staffs</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <InputRow edit={edit} formData={formData} label="No. of residence" names={["num_faculty_residence", "num_other_staffs_residence"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="No. of members residing inside" names={["num_faculty_inside", "num_other_staffs_inside"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="No. of members residing outside" names={["num_faculty_outside", "num_other_staffs_outside"]} handleChange={handleChange} />
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th></th>
+                                        <th>Faculty</th>
+                                        <th>Other staffs</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <InputRow edit={edit} formData={formData} label="No. of residence" names={["num_faculty_residence", "num_other_staffs_residence"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="No. of members residing inside" names={["num_faculty_inside", "num_other_staffs_inside"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="No. of members residing outside" names={["num_faculty_outside", "num_other_staffs_outside"]} handleChange={handleChange} />
+                                </tbody>
+                            </table>
+                        </div>
                         {
                             formData.num_faculty_outside > 0 &&
                             <Input edit={edit} formData={formData} handleChange={handleChange} label="Reason for faculty residing outside:" name="reason_faculty_outside" type='text' />
@@ -640,19 +839,21 @@ const ReportForm = () => {
                     page === 6 &&
                     <>
                         <h2 className="font-bold mt-6">12. No. of books, journals</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Required</th>
-                                    <th>Available</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <InputRow edit={edit} formData={formData} label="Books" names={["num_books_required", "num_books_avail"]} handleChange={handleChange} />
-                                <InputRow edit={edit} formData={formData} label="Journals" names={["num_journals_required", "num_journals_avail"]} handleChange={handleChange} />
-                            </tbody>
-                        </table>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th></th>
+                                        <th>Required</th>
+                                        <th>Available</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <InputRow edit={edit} formData={formData} label="Books" names={["num_books_required", "num_books_avail"]} handleChange={handleChange} />
+                                    <InputRow edit={edit} formData={formData} label="Journals" names={["num_journals_required", "num_journals_avail"]} handleChange={handleChange} />
+                                </tbody>
+                            </table>
+                        </div>
 
                         <h2 className="font-bold mt-6">13. Internet / Wifi & Networking</h2>
                         <YesOrNo edit={edit} formData={formData} handleChange={handleChange} label="Internet / Wifi installed" name="is_internet_installed" />
@@ -815,13 +1016,20 @@ const ReportForm = () => {
                     <>
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Major Observations / Findings" name="major_observations" type='textarea' />
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Recommendations for improvement or action" name="recommendations" type='textarea' />
-                        <div>
-                            <span>Location: </span>
-                            <span> {formData.location.address} </span>
-                            {
-                                (id === undefined || id === null) && <button className='border' onClick={(e) => { e.preventDefault(); getLocation() }}>Update</button>
-                            }
+                        <div className="flex items-center space-x-4">
+                            <span className="font-bold">Location:</span>
+                            <span className="text-gray-900">{formData.location.address}</span>
+
+                            {(id === undefined || id === null) && (
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-md border border-blue-500 hover:bg-blue-600 hover:border-blue-600 transition duration-300"
+                                    onClick={(e) => { e.preventDefault(); getLocation(); }}
+                                >
+                                    Update
+                                </button>
+                            )}
                         </div>
+
                         <LocationMap position={formData.location.coordinates} />
                         <ImageUploader setFormData={setFormData} preview={id === undefined || id === null ? preview : (edit ? preview : formData.image_url)} handleImageChange={handleImageChange} edit={edit} id={id} />
 

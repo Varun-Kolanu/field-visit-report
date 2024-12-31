@@ -10,12 +10,14 @@ import AllReports from "./pages/AllReports";
 import ReportForm from "./pages/ReportForm";
 import MyReports from "./pages/MyReports";
 import AdminPanel from "./pages/Admin";
+import InstallPWA from "./components/InstallPWA";
 
 function App() {
 
   return (
     <>
       <Toaster position="top-center" />
+      {/* <InstallPWA /> */}
       <Router>
         <Routes>
           <Route
