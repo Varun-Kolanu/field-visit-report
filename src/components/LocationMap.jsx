@@ -9,6 +9,7 @@ function LocationMap({ position }) {
             center={position}
             zoom={17}
             style={{ height: "300px", width: "100%" }}
+        // className="-z-10"
         >
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
