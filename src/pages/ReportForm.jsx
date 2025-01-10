@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import Modal from "react-modal";
 import debounce from "lodash.debounce";
@@ -6,6 +6,8 @@ import LocationMap from '../components/LocationMap';
 import ImageUploader from '../components/ImageUploader';
 import axios from '../utils/axiosInstance';
 import Loader from '../components/Loader';
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 const OfficerRow = ({ officer, index, onDelete, edit }) => (
     <div className="flex justify-between items-center mb-4 bg-gray-100 rounded-lg p-3 shadow-md">
@@ -146,401 +148,9 @@ const BinaryInput = ({ label, handleChange, formData, name, val1, val2, edit }) 
     );
 };
 
-const ReportForm = () => {
-    const [modalIsOpen, setIsOpen] = useState(false);
-    const [officerName, setOfficerName] = useState("");
-    const [officerDesignation, setOfficerDesignation] = useState("");
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id")
-    const [edit, setEdit] = useState(id === undefined || id === null);
-    const [loading, setLoading] = useState(false);
-
-    const emptyForm = {
-        type: "poly",
-        officers: [],
-        institute_name: "",
-        start_date: "",
-        end_date: "",
-        unique_code: "",
-        principal_name: "",
-        principal_contact: "",
-
-        year1_admission: 0,
-        year1_present: 0,
-        year2_admission: 0,
-        year2_present: 0,
-        year3_admission: 0,
-        year3_present: 0,
-        year4_admission: 0,
-        year4_present: 0,
-        mtech_1_admission: 0,
-        mtech_1_present: 0,
-        mtech_2_admission: 0,
-        mtech_2_present: 0,
-        faculty_fulltime_posted: 0,
-        faculty_fulltime_present: 0,
-        faculty_contractual_posted: 0,
-        faculty_contractual_present: 0,
-        faculty_guest_posted: 0,
-        faculty_guest_present: 0,
-        faculty_total_posted: 0,
-        faculty_total_present: 0,
-
-        boys_hostels: 0,
-        boys_hostels_capacity: 0,
-        num_boys_avail: 0,
-        girls_hostels: 0,
-        girls_hostels_capacity: 0,
-        num_girls_avail: 0,
-        total_hostels: 0,
-        total_hostels_capacity: 0,
-        num_students_avail: 0,
-        num_faculty_residence: 0,
-        num_other_staffs_residence: 0,
-        num_faculty_inside: 0,
-        num_other_staffs_inside: 0,
-        num_faculty_outside: 0,
-        num_other_staffs_outside: 0,
-        reason_faculty_outside: "",
-        reason_other_staffs_outside: "",
-
-        num_classes_expected: 0,
-        num_classes_undertaken: 0,
-        num_biometric_avail: 0,
-        num_biometric_functional: 0,
-        is_manual_attendance: "",
-        is_app_based_attendance: "",
-
-        is_dedicated_feeder_installed: "",
-        feeder_hrs_avail: 0,
-        is_power_backup_avail: "",
-        power_backup_source: "",
-        was_solar_backup_by_breda: "",
-
-        num_classrooms_required: 0,
-        num_classrooms_functional: 0,
-        num_labs_required: 0,
-        num_labs_functional: 0,
-        num_students_enrolled: 0,
-        are_equipments_used: "",
-        reason_equipments_no_use: "",
-        is_lang_lab_established: "",
-        is_lang_lab_functional: "",
-        num_lang_students_registered: 0,
-
-        num_books_required: 0,
-        num_books_avail: 0,
-        num_journals_required: 0,
-        num_journals_avail: 0,
-        is_internet_installed: "",
-        internet_speed: "",
-        reason_no_internet: "",
-        is_networking_installed: "",
-        is_augmentation_undertaken: "",
-        reason_no_networking: "",
-
-        is_computer_procured: "",
-        percent_computers_utilized: 0,
-        reason_no_computer: "",
-        is_equipment_procured: "",
-        percent_equipment_utilized: 0,
-        reason_no_equipment: "",
-        is_library_functional: "",
-        students_enrolled_in_library: 0,
-        students_using_library: 0,
-        is_ids_registered: "",
-        was_ids_bank_acc_opened: "",
-        is_ec_meeting_held_on_time: "",
-
-        was_consultancy_work_started: "",
-        num_projects_category1: 0,
-        num_projects_category2: 0,
-        num_projects_category3: 0,
-        num_projects_category4: 0,
-        consultancy_amount_earned: 0,
-        consultancy_amount_distributed: 0,
-        consultancy_amount_rest: 0,
-        scope_for_consultancy: "",
-
-        are_cell_meetings_ok: "",
-        reason_cell_non_functioning: "",
-        is_women_helpline_no_functional: "",
-        reason_women_helpline_no_functional: "",
-        is_water_supply_installed: "",
-        reason_water_supply_not_installed: "",
-        is_cctv_installed: "",
-        reason_cctv_not_installed: "",
-        num_nba_acc_files: 0,
-        num_pahal_students: 0,
-        num_pahal_classes: 0,
-
-        is_disclosure_made_public: "",
-        reason_disclosure_not_made_public: "",
-        is_mess_functional: "Yes",
-        mess_run_by: "",
-        ac_dc_pending_amount: 0,
-        ac_dc_settled_amount: 0,
-        total_amount_with_college: 0,
-        utilized_amount_as_on_date: 0,
-
-        major_observations: "",
-        recommendations: "",
-        location: {
-            coordinates: ["", ""],
-            address: ""
-        },
-        image_url: ""
-    }
-    const [formData, setFormData] = useState(emptyForm);
-
-    const [image, setImage] = useState(null);
-    const [preview, setPreview] = useState(null);
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImage(file);
-            setPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const uploadToFirebase = async (imageFile) => {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-
-        const response = await axios.post("/upload", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-        })
-
-        return response.data
-    };
-
-    const getLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    let address = "";
-                    try {
-                        address = (await axios.get(`/address?latitude=${latitude}&longitude=${longitude}`)).data
-                    } catch (error) {
-                        console.error(error)
-                    }
-                    setFormData(prev => ({
-                        ...prev,
-                        location: {
-                            coordinates: [latitude, longitude],
-                            address
-                        }
-                    }))
-                },
-                (err) => {
-                    toast.error("Failed to retrieve location. Please allow location access.");
-                    console.error(err);
-                }
-            );
-        } else {
-            toast.error("Geolocation is not supported by this browser.");
-        }
-    };
-
-    const [page, setPage] = useState(1);
-
-    useEffect(() => {
-        async function getReport() {
-            const response = await axios.get(`/reports/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                }
-            });
-            setFormData(response.data);
-        }
-        if (id === undefined || id === null) {
-            const savedData = localStorage.getItem("formData");
-            if (savedData && Object.keys(savedData).length > 0) setFormData(JSON.parse(savedData));
-        } else {
-            getReport();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (page === 11 && (id === undefined || id === null)) {
-            getLocation();
-        }
-    }, [page])
-
-    useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === 'ArrowLeft') {
-                if (page > 1) setPage(prev => prev - 1);
-                event.preventDefault();  // Prevent default behavior (like scrolling)
-            } else if (event.key === 'ArrowRight') {
-                if (page < 11) setPage(prev => prev + 1);
-                event.preventDefault();  // Prevent default behavior (like scrolling)
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [page]);
-
-
-
-    const debouncedSave = useCallback(debounce((data) => {
-        localStorage.setItem("formData", JSON.stringify(data));
-    }, 2000), []);
-
-    useEffect(() => {
-        if (id === undefined || id === null) debouncedSave(formData);
-    }, [formData, debouncedSave]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (page !== 11) return;
-        let newFormData = formData;
-        setLoading(true);
-        if (image) {
-            const image_url = await uploadToFirebase(image);
-            newFormData = {
-                ...formData,
-                image_url,
-            }
-        }
-        if (id === undefined || id === null) {
-            if (formData.officers.length === 0) {
-                return toast.error("Please add atlease one officer")
-            }
-            try {
-                await axios.post('/reports', newFormData, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
-            } catch (error) {
-                setLoading(false);
-                return;
-            }
-            setLoading(false)
-            toast.success("Report submitted successfully");
-            setFormData(emptyForm);
-            localStorage.setItem("formData", JSON.stringify(emptyForm))
-            window.location.href = "/my_reports";
-        } else {
-            try {
-                await axios.put(`/reports/${id}`, newFormData, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
-            } catch (error) {
-                setLoading(false);
-                return;
-            }
-            setLoading(false)
-            toast.success("Report updated successfully");
-            setEdit(false);
-            window.location.reload()
-        }
-    };
-
-    const addOfficer = () => {
-        if (!officerName || !officerDesignation) {
-            toast.error("Please fill all fields");
-            return;
-        }
-        setFormData((prev) => ({
-            ...prev,
-            officers: [...prev.officers, { name: officerName, designation: officerDesignation }],
-        }));
-        setOfficerName("");
-        setOfficerDesignation("");
-        setIsOpen(false);
-    };
-
-    const deleteOfficer = (index) => {
-        setFormData((prev) => ({
-            ...prev,
-            officers: prev.officers.filter((_, ind) => ind !== index),
-        }));
-    };
-
-    Modal.setAppElement("#root");
-
-    if (loading) return <Loader />
-
-    return (
-        <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg text-black">
-            <h1 className="text-2xl font-bold mb-4"> {(id === null || id === undefined) && 'Add'} Field Visit Report</h1>
-            {
-                id !== undefined && id !== null &&
-                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-4 py-2 mb-4 md:mb-0`} onClick={() => {
-                    setEdit(prev => !prev);
-                }}>
-                    {
-                        edit ? "Cancel" : "Edit Form"
-                    }
-                </button>
-            }
-
-            <div className="flex items-center justify-center space-x-2 md:space-x-4">
-                <button
-                    className={`px-2 py-1 cursor-pointer rounded-md ${page <= 1 ? 'bg-red-400' : 'bg-red-500'} disabled:bg-gray-300`}
-                    disabled={page <= 1}
-                    onClick={() => setPage(prev => prev - 1)}
-                >
-                    Prev
-                </button>
-
-                <div className="flex flex-wrap space-x-1">
-                    {
-                        Array.from({ length: 11 }).map((_, index) => (
-                            <span
-                                key={index}
-                                className={`cursor-pointer border px-3 py-1 rounded-md ${page === index + 1 ? 'bg-gray-400 text-white' : 'hover:bg-gray-200'}`}
-                                onClick={() => setPage(index + 1)}
-                            >
-                                {index + 1}
-                            </span>
-                        ))
-                    }
-                </div>
-
-                <button
-                    className={`px-2 py-1 cursor-pointer rounded-md ${page >= 11 ? 'bg-green-300' : 'bg-green-500'} disabled:bg-gray-300`}
-                    disabled={page >= 11}
-                    onClick={(e) => { e.preventDefault(); setPage(prev => prev + 1) }}
-                >
-                    Next
-                </button>
-            </div>
-
-            <div className="my-4">
-                <span className="block font-medium">College Type:</span>
-                <select
-                    name="type"
-                    onChange={handleChange}
-                    value={formData.type}
-                    disabled={!edit}
-                    className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 disabled:bg-gray-100"
-                >
-                    <option value="poly">Polytechnic</option>
-                    <option value="engg">Engineering</option>
-                </select>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {
+const getFormContent = (page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation) => {
+    return <>
+        {
                     page === 1 &&
                     <>
                         <div className="p-4 bg-white rounded-md shadow-md">
@@ -622,7 +232,6 @@ const ReportForm = () => {
                             <label htmlFor="end_date">End Date</label>
                             <input type="date" name="end_date" id="end_date" onChange={handleChange} value={formData.end_date} disabled={!edit} />
                         </div>
-                        <Input edit={edit} formData={formData} handleChange={handleChange} label="Unique Code" name="unique_code" type='text' />
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Principal Name" name="principal_name" type='text' />
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Principal contact" name="principal_contact" type='text' />
                     </>
@@ -1042,6 +651,447 @@ const ReportForm = () => {
                             </button>
                         }
                     </>
+                }
+    </>
+}
+
+const ReportForm = () => {
+    const [modalIsOpen, setIsOpen] = useState(false);
+    const [officerName, setOfficerName] = useState("");
+    const [officerDesignation, setOfficerDesignation] = useState("");
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id")
+    const [edit, setEdit] = useState(id === undefined || id === null);
+    const [loading, setLoading] = useState(false);
+
+  const renderAllPages = () => {
+    const pages = [];
+    for (let i = 1; i <= 11; i++) {
+      pages.push(getFormContent(page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview));
+    }
+    return pages;
+  };
+
+  const downloadPDF = async () => {
+    const doc = new jsPDF();
+    const allPages = renderAllPages();
+    console.log(allPages)
+    for (let i = 0; i < allPages.length; i++) {
+      // Create a temporary container for rendering the page content
+      const pageElement = document.createElement("div");
+      pageElement.style.position = "absolute";
+      pageElement.style.top = "-9999px"; // Hide from view
+      pageElement.style.width = "800px"; // Adjust width to your form's design
+      pageElement.innerHTML = allPages
+
+      document.body.appendChild(pageElement);
+
+      // Use html2canvas to capture the page
+      const canvas = await html2canvas(pageElement, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = 190; // PDF width
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Add the image to the PDF
+      if (i > 0) doc.addPage();
+      doc.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+
+      // Clean up the temporary container
+      document.body.removeChild(pageElement);
+    }
+
+    // Save the PDF
+    doc.save("Field-Visit-Report.pdf");
+  };
+
+    const emptyForm = {
+        type: "poly",
+        officers: [],
+        institute_name: "",
+        start_date: "",
+        end_date: "",
+        unique_code: "",
+        principal_name: "",
+        principal_contact: "",
+
+        year1_admission: 0,
+        year1_present: 0,
+        year2_admission: 0,
+        year2_present: 0,
+        year3_admission: 0,
+        year3_present: 0,
+        year4_admission: 0,
+        year4_present: 0,
+        mtech_1_admission: 0,
+        mtech_1_present: 0,
+        mtech_2_admission: 0,
+        mtech_2_present: 0,
+        faculty_fulltime_posted: 0,
+        faculty_fulltime_present: 0,
+        faculty_contractual_posted: 0,
+        faculty_contractual_present: 0,
+        faculty_guest_posted: 0,
+        faculty_guest_present: 0,
+        faculty_total_posted: 0,
+        faculty_total_present: 0,
+
+        boys_hostels: 0,
+        boys_hostels_capacity: 0,
+        num_boys_avail: 0,
+        girls_hostels: 0,
+        girls_hostels_capacity: 0,
+        num_girls_avail: 0,
+        total_hostels: 0,
+        total_hostels_capacity: 0,
+        num_students_avail: 0,
+        num_faculty_residence: 0,
+        num_other_staffs_residence: 0,
+        num_faculty_inside: 0,
+        num_other_staffs_inside: 0,
+        num_faculty_outside: 0,
+        num_other_staffs_outside: 0,
+        reason_faculty_outside: "",
+        reason_other_staffs_outside: "",
+
+        num_classes_expected: 0,
+        num_classes_undertaken: 0,
+        num_biometric_avail: 0,
+        num_biometric_functional: 0,
+        is_manual_attendance: "",
+        is_app_based_attendance: "",
+
+        is_dedicated_feeder_installed: "",
+        feeder_hrs_avail: 0,
+        is_power_backup_avail: "",
+        power_backup_source: "",
+        was_solar_backup_by_breda: "",
+
+        num_classrooms_required: 0,
+        num_classrooms_functional: 0,
+        num_labs_required: 0,
+        num_labs_functional: 0,
+        num_students_enrolled: 0,
+        are_equipments_used: "",
+        reason_equipments_no_use: "",
+        is_lang_lab_established: "",
+        is_lang_lab_functional: "",
+        num_lang_students_registered: 0,
+
+        num_books_required: 0,
+        num_books_avail: 0,
+        num_journals_required: 0,
+        num_journals_avail: 0,
+        is_internet_installed: "",
+        internet_speed: "",
+        reason_no_internet: "",
+        is_networking_installed: "",
+        is_augmentation_undertaken: "",
+        reason_no_networking: "",
+
+        is_computer_procured: "",
+        percent_computers_utilized: 0,
+        reason_no_computer: "",
+        is_equipment_procured: "",
+        percent_equipment_utilized: 0,
+        reason_no_equipment: "",
+        is_library_functional: "",
+        students_enrolled_in_library: 0,
+        students_using_library: 0,
+        is_ids_registered: "",
+        was_ids_bank_acc_opened: "",
+        is_ec_meeting_held_on_time: "",
+
+        was_consultancy_work_started: "",
+        num_projects_category1: 0,
+        num_projects_category2: 0,
+        num_projects_category3: 0,
+        num_projects_category4: 0,
+        consultancy_amount_earned: 0,
+        consultancy_amount_distributed: 0,
+        consultancy_amount_rest: 0,
+        scope_for_consultancy: "",
+
+        are_cell_meetings_ok: "",
+        reason_cell_non_functioning: "",
+        is_women_helpline_no_functional: "",
+        reason_women_helpline_no_functional: "",
+        is_water_supply_installed: "",
+        reason_water_supply_not_installed: "",
+        is_cctv_installed: "",
+        reason_cctv_not_installed: "",
+        num_nba_acc_files: 0,
+        num_pahal_students: 0,
+        num_pahal_classes: 0,
+
+        is_disclosure_made_public: "",
+        reason_disclosure_not_made_public: "",
+        is_mess_functional: "Yes",
+        mess_run_by: "",
+        ac_dc_pending_amount: 0,
+        ac_dc_settled_amount: 0,
+        total_amount_with_college: 0,
+        utilized_amount_as_on_date: 0,
+
+        major_observations: "",
+        recommendations: "",
+        location: {
+            coordinates: ["", ""],
+            address: ""
+        },
+        image_url: ""
+    }
+    const [formData, setFormData] = useState(emptyForm);
+
+    const [image, setImage] = useState(null);
+    const [preview, setPreview] = useState(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+            setPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const uploadToFirebase = async (imageFile) => {
+        const formData = new FormData();
+        formData.append("image", imageFile);
+
+        const response = await axios.post("/upload", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+        })
+
+        return response.data
+    };
+
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    let address = "";
+                    try {
+                        address = (await axios.get(`/address?latitude=${latitude}&longitude=${longitude}`)).data
+                    } catch (error) {
+                        console.error(error)
+                    }
+                    setFormData(prev => ({
+                        ...prev,
+                        location: {
+                            coordinates: [latitude, longitude],
+                            address
+                        }
+                    }))
+                },
+                (err) => {
+                    toast.error("Failed to retrieve location. Please allow location access.");
+                    console.error(err);
+                }
+            );
+        } else {
+            toast.error("Geolocation is not supported by this browser.");
+        }
+    };
+
+    const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        async function getReport() {
+            const response = await axios.get(`/reports/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                }
+            });
+            setFormData(response.data);
+        }
+        if (id === undefined || id === null) {
+            const savedData = localStorage.getItem("formData");
+            if (savedData && Object.keys(savedData).length > 0) setFormData(JSON.parse(savedData));
+        } else {
+            getReport();
+        }
+    }, []);
+
+    useEffect(() => {
+        if (page === 11 && (id === undefined || id === null)) {
+            getLocation();
+        }
+    }, [page])
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === 'ArrowLeft') {
+                if (page > 1) setPage(prev => prev - 1);
+                event.preventDefault();  // Prevent default behavior (like scrolling)
+            } else if (event.key === 'ArrowRight') {
+                if (page < 11) setPage(prev => prev + 1);
+                event.preventDefault();  // Prevent default behavior (like scrolling)
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [page]);
+
+
+
+    const debouncedSave = useCallback(debounce((data) => {
+        localStorage.setItem("formData", JSON.stringify(data));
+    }, 2000), []);
+
+    useEffect(() => {
+        if (id === undefined || id === null) debouncedSave(formData);
+    }, [formData, debouncedSave]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (page !== 11) return;
+        let newFormData = formData;
+        setLoading(true);
+        if (image) {
+            const image_url = await uploadToFirebase(image);
+            newFormData = {
+                ...formData,
+                image_url,
+            }
+        }
+        if (id === undefined || id === null) {
+            if (formData.officers.length === 0) {
+                return toast.error("Please add atlease one officer")
+            }
+            try {
+                await axios.post('/reports', newFormData, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+            } catch (error) {
+                setLoading(false);
+                return;
+            }
+            setLoading(false)
+            toast.success("Report submitted successfully");
+            setFormData(emptyForm);
+            localStorage.setItem("formData", JSON.stringify(emptyForm))
+            window.location.href = "/my_reports";
+        } else {
+            try {
+                await axios.put(`/reports/${id}`, newFormData, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+            } catch (error) {
+                setLoading(false);
+                return;
+            }
+            setLoading(false)
+            toast.success("Report updated successfully");
+            setEdit(false);
+            window.location.reload()
+        }
+    };
+
+    const addOfficer = () => {
+        if (!officerName || !officerDesignation) {
+            toast.error("Please fill all fields");
+            return;
+        }
+        setFormData((prev) => ({
+            ...prev,
+            officers: [...prev.officers, { name: officerName, designation: officerDesignation }],
+        }));
+        setOfficerName("");
+        setOfficerDesignation("");
+        setIsOpen(false);
+    };
+
+    const deleteOfficer = (index) => {
+        setFormData((prev) => ({
+            ...prev,
+            officers: prev.officers.filter((_, ind) => ind !== index),
+        }));
+    };
+
+    Modal.setAppElement("#root");
+
+    if (loading) return <Loader />
+
+    return (
+        <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg text-black">
+            <h1 className="text-2xl font-bold mb-4"> {(id === null || id === undefined) && 'Add'} Field Visit Report</h1>
+            {
+                id !== undefined && id !== null &&
+                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-4 py-2 mb-4 md:mb-0`} onClick={() => {
+                    setEdit(prev => !prev);
+                }}>
+                    {
+                        edit ? "Cancel" : "Edit Form"
+                    }
+                </button>
+            }
+            {/* <button onClick={downloadPDF}>Download Full PDF</button> */}
+
+            <div className="flex items-center justify-center space-x-2 md:space-x-4">
+                <button
+                    className={`px-2 py-1 cursor-pointer rounded-md ${page <= 1 ? 'bg-red-400' : 'bg-red-500'} disabled:bg-gray-300`}
+                    disabled={page <= 1}
+                    onClick={() => setPage(prev => prev - 1)}
+                >
+                    Prev
+                </button>
+
+                <div className="flex flex-wrap space-x-1">
+                    {
+                        Array.from({ length: 11 }).map((_, index) => (
+                            <span
+                                key={index}
+                                className={`cursor-pointer border px-3 py-1 rounded-md ${page === index + 1 ? 'bg-gray-400 text-white' : 'hover:bg-gray-200'}`}
+                                onClick={() => setPage(index + 1)}
+                            >
+                                {index + 1}
+                            </span>
+                        ))
+                    }
+                </div>
+
+                <button
+                    className={`px-2 py-1 cursor-pointer rounded-md ${page >= 11 ? 'bg-green-300' : 'bg-green-500'} disabled:bg-gray-300`}
+                    disabled={page >= 11}
+                    onClick={(e) => { e.preventDefault(); setPage(prev => prev + 1) }}
+                >
+                    Next
+                </button>
+            </div>
+
+            <div className="my-4">
+                <span className="block font-medium">College Type:</span>
+                <select
+                    name="type"
+                    onChange={handleChange}
+                    value={formData.type}
+                    disabled={!edit}
+                    className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 disabled:bg-gray-100"
+                >
+                    <option value="poly">Polytechnic</option>
+                    <option value="engg">Engineering</option>
+                </select>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {
+                    getFormContent(page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation)
                 }
             </form>
         </div>
