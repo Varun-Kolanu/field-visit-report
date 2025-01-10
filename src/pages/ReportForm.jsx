@@ -148,7 +148,7 @@ const BinaryInput = ({ label, handleChange, formData, name, val1, val2, edit }) 
     );
 };
 
-const getFormContent = (page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation) => {
+const getFormContent = (page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation,setOfficerName, setOfficerDesignation ) => {
     return <>
         {
                     page === 1 &&
@@ -1091,7 +1091,7 @@ const ReportForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {
-                    getFormContent(page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation)
+                    getFormContent(page, setIsOpen, modalIsOpen, formData, edit, handleChange, addOfficer, officerName, officerDesignation, deleteOfficer, id, setFormData, handleImageChange, preview, getLocation, setOfficerName, setOfficerDesignation)
                 }
             </form>
         </div>
