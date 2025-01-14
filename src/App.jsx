@@ -11,6 +11,7 @@ import ReportForm from "./pages/ReportForm";
 import MyReports from "./pages/MyReports";
 import AdminPanel from "./pages/Admin";
 import InstallPWA from "./components/InstallPWA";
+import PDFGenerator from "./pages/SamplePdf";
 
 function App() {
 
@@ -72,10 +73,10 @@ function App() {
                   <AdminPanel />
                 </>} />
           </Route>
-          {/* <Route
-            path="/add_report"
-            element={<AddReport />}
-          /> */}
+          <Route
+            path="/sample"
+            element={<PDFGenerator />}
+          />
         </Routes>
       </Router>
     </>

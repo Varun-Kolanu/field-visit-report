@@ -6,6 +6,84 @@ import LocationMap from '../components/LocationMap';
 import ImageUploader from '../components/ImageUploader';
 import axios from '../utils/axiosInstance';
 import Loader from '../components/Loader';
+import { Page, Text, View, Document, PDFDownloadLink, Image, pdf } from "@react-pdf/renderer";
+import { StyleSheet } from "@react-pdf/renderer";
+
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontFamily: "Helvetica",
+  },
+  title: {
+    fontSize: 24,
+    textAlign: "center",
+    marginBottom: 20,
+    fontWeight: "bold",
+  },
+  fieldContainer: {
+    marginBottom: 10,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  fieldValue: {
+    fontSize: 12,
+    padding: 10,
+    border: "1px solid #000",
+    borderRadius: 4,
+  },
+  image: {
+    marginBottom: 20,
+    height: 100,
+    width: 100, 
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    position: "absolute",
+    bottom: 20,
+    left: 40,
+    right: 40,
+  },
+  stamp: {
+    fontSize: 10,
+    textAlign: "left",
+  },
+  signature: {
+    fontSize: 10,
+    textAlign: "right",
+  },
+});
+
+const MyPDFDocument = ({ data }) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.title}>{data.title}</Text>
+
+      {data.fields.map((field, index) => (
+        <View key={index} style={styles.fieldContainer}>
+          <Text style={styles.fieldLabel}>{field.label}:</Text>
+          <Text style={styles.fieldValue}>{field.value}</Text>
+        </View>
+      ))}
+
+        {data.image &&
+        <View style={styles.fieldContainer}>
+            <Text style={styles.fieldLabel}>Uploaded Image</Text>
+            <Image src={data.image} style={styles.image} />
+        </View>
+        }
+
+      <View style={styles.footer}>
+        <Text style={styles.stamp}>{data.stampText}</Text>
+        <Text style={styles.signature}>{data.signatureText}</Text>
+      </View>
+    </Page>
+  </Document>
+);
 
 const OfficerRow = ({ officer, index, onDelete, edit }) => (
     <div className="flex justify-between items-center mb-4 bg-gray-100 rounded-lg p-3 shadow-md">
@@ -318,6 +396,59 @@ const ReportForm = () => {
         return response.data
     };
 
+    const [pdfData, setPdfData] = useState({
+        title: "Field Visit Report",
+        fields: [],
+        image: "",
+        stampText: "Official Seal",
+        signatureText: "Principal's Signature",
+    });
+
+    useEffect(() => {
+        const fetchImage = async (url) => {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch image");
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          } catch (error) {
+            console.error("Image fetch error:", error);
+            return null;
+          }
+        };
+    
+        const preparePdfData = async () => {
+            let imageBase64 = ""
+            if (formData.image_url) {
+                imageBase64 = await fetchImage(formData.image_url)
+            }
+    
+          const fields = [
+            { label: "College Type", value: formData.type === "engg" ? "Engineering" : formData.type === "poly" ? "Polytechnic" : "" },
+            { label: "Officers", value: formData.officers.map((officer) => `${officer.name} (${officer.designation})`).join(", ") },
+            { label: "Institute Name", value: formData.institute_name },
+            { label: "Principal Name", value: formData.principal_name },
+            { label: "Principal Contact", value: formData.principal_contact },
+            { label: "Major Observations / Findings", value: formData.major_observations },
+            { label: "Recommendations for improvement or action", value: formData.recommendations },
+            { label: "Location", value: formData.location.address },
+          ];
+    
+          setPdfData(prev => ({
+            ...prev,
+            fields,
+            image: imageBase64,
+          }));
+        };
+    
+        preparePdfData();
+      }, [formData]);
+
     const getLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -419,6 +550,7 @@ const ReportForm = () => {
         }
         if (id === undefined || id === null) {
             if (formData.officers.length === 0) {
+                setLoading(false)
                 return toast.error("Please add atlease one officer")
             }
             try {
@@ -452,6 +584,7 @@ const ReportForm = () => {
             setEdit(false);
             window.location.reload()
         }
+        setLoading(false);
     };
 
     const addOfficer = () => {
@@ -484,7 +617,7 @@ const ReportForm = () => {
             <h1 className="text-2xl font-bold mb-4"> {(id === null || id === undefined) && 'Add'} Field Visit Report</h1>
             {
                 id !== undefined && id !== null &&
-                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-4 py-2 mb-4 md:mb-0`} onClick={() => {
+                <button className={` ${edit ? 'bg-gray-500' : 'bg-yellow-500'} rounded-md px-4 py-2 mb-4 md:mb-0 mr-4`} onClick={() => {
                     setEdit(prev => !prev);
                 }}>
                     {
@@ -492,8 +625,15 @@ const ReportForm = () => {
                     }
                 </button>
             }
+            <PDFDownloadLink
+                document={<MyPDFDocument data={pdfData} />}
+                fileName={`field-visit-report-${formData.institute_name}`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+                {({ loading }) => (loading ? "Loading document..." : "Download PDF")}
+            </PDFDownloadLink>
 
-            <div className="flex items-center justify-center space-x-2 md:space-x-4">
+            <div className="flex items-center justify-center space-x-2 md:space-x-4 mt-4">
                 <button
                     className={`px-2 py-1 cursor-pointer rounded-md ${page <= 1 ? 'bg-red-400' : 'bg-red-500'} disabled:bg-gray-300`}
                     disabled={page <= 1}
@@ -622,7 +762,7 @@ const ReportForm = () => {
                             <label htmlFor="end_date">End Date</label>
                             <input type="date" name="end_date" id="end_date" onChange={handleChange} value={formData.end_date} disabled={!edit} />
                         </div>
-                        <Input edit={edit} formData={formData} handleChange={handleChange} label="Unique Code" name="unique_code" type='text' />
+                        {/* <Input edit={edit} formData={formData} handleChange={handleChange} label="Unique Code" name="unique_code" type='text' /> */}
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Principal Name" name="principal_name" type='text' />
                         <Input edit={edit} formData={formData} handleChange={handleChange} label="Principal contact" name="principal_contact" type='text' />
                     </>
